@@ -103,7 +103,7 @@ def gen_params(appid, domain, question):
         "header": {
             "app_id": appid,
             "uid": "1234",
-            "patch_id" : ["6958565699461120"]
+            "patch_id" : ["436732032557056"]
         },
         "parameter": {
             "chat": {

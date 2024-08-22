@@ -11,9 +11,9 @@ CORS(app)
 
 # 配置环境变量
 os.environ["IFLYTEK_SPARK_URL"] = "wss://xingchen-api.cn-huabei-1.xf-yun.com/v1.1/chat"
-os.environ["IFLYTEK_SPARK_APP_ID"] = "27741adb"
-os.environ["IFLYTEK_SPARK_API_KEY"] = "7bf569c16f9330e40b49fba1ac28383b"
-os.environ["IFLYTEK_SPARK_API_SECRET"] = "ZTNhYzdhNzI4NTExMGI4MTJjZjAyNjlk"
+os.environ["IFLYTEK_SPARK_APP_ID"] = "fb05eb34"
+os.environ["IFLYTEK_SPARK_API_KEY"] = "75ddd2e19d262c0db0c4daf62b9b21c0"
+os.environ["IFLYTEK_SPARK_API_SECRET"] = "NzhkOTc0ZWFiYmZlN2I2YzA0MWYwM2Zm"
 
 # 用于配置大模型版本，默认“general/generalv2”
 domain = "xspark13b6k"  # v2.0版本
@@ -57,14 +57,14 @@ def chat():
     stored_answer = ""  # 重置答案
     return jsonify({'answer': response})
 
-def process_questions():
-    global stored_question, stored_answer
+def process_questions(stored_question, stored_answer, loop=True):
+    # global stored_question, stored_answer
     while True:
         if stored_question:
             prompt = ("？。 上面输入的问题属于下面ABCDE的哪一类，请输出对应的字母。\n"
-                      "A: 查询企业信息。例如:查询企业的所属城市、营业期限、成立日期、纳税人识别号、法定代表人人、实缴资本、所属行业、匹配状态、所属城市等等一系列和企业信息有关的问题。\n"
+                      "A: 查询企业的所属城市、营业期限、成立日期、纳税人识别号、法定代表人人、实缴资本、所属行业、匹配状态、所属城市等等一系列和企业信息有关的问题。\n"
                       "B: 招投标中的政策、法律咨询相关问题。包括招标投标的一般规定、招标范围、招标程序、监督处理、领域规范。还有政府采购的一般规定、采购主体、政策功能、采购方式等相关问题。\n"
-                      "C: 企业舆情问题。\n"
+                      "C: 企业舆情问题,企业舆情通常涉及企业的声誉、市场表现、管理层变动、重大合作、法律纠纷等方面。\n"
                       "D: 查询招标信息。\n"
                       "E: 其他 例如:日常生活中常见的问题，通用的问题，不符合招投标领域的。\n")
             
@@ -72,6 +72,7 @@ def process_questions():
             stored_answer = ""
             question = checklen(getText("user", Input))
             SparkApi.answer = ""
+            print(stored_question)
             print("星火:", end="")
             SparkApi.main(appid, api_key, api_secret, Spark_url, domain, question)
             getText("assistant", SparkApi.answer)
@@ -89,8 +90,11 @@ def process_questions():
                       "C: 企业舆情问题。\n"
                       "D: 查询招标信息。\n")
             stored_question = ""  # Reset the question after processing
+        if loop == False:
+            return stored_answer
+            break
         time.sleep(1)  # Add a small delay to prevent busy-waiting
 
 if __name__ == '__main__':
-    threading.Thread(target=process_questions, daemon=True).start()
+    threading.Thread(target=process_questions(stored_question, stored_answer), daemon=True).start()
     app.run(debug=True)
